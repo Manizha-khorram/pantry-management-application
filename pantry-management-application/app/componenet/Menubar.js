@@ -1,111 +1,68 @@
+"use client";
 import * as React from "react";
-import Button from "@mui/material/Button";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
-import Grow from "@mui/material/Grow";
 import Paper from "@mui/material/Paper";
-import Popper from "@mui/material/Popper";
 import MenuItem from "@mui/material/MenuItem";
 import MenuList from "@mui/material/MenuList";
-import Stack from "@mui/material/Stack";
+import { Box, ListItemIcon, Typography } from "@mui/material";
+import ListIcon from "@mui/icons-material/List";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
-import { Box } from "@mui/material";
-
-export default function MenuListComposition() {
-  const [open, setOpen] = React.useState(false);
-  const anchorRef = React.useRef(null);
-
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
+export default function MenuListComposition({
+  open,
+  onClose,
+  buttonRef,
+  onMenuItemClick,
+}) {
+  const handleClickAway = (event) => {
+    if (
+      open &&
+      buttonRef.current &&
+      !buttonRef.current.contains(event.target)
+    ) {
+      onClose(); // Only close if the menu is open and click is not on the button
+    }
   };
-
-  const handleClose = (event) => {
-    if (anchorRef.current && anchorRef.current.contains(event.target)) {
-      return;
-    }
-
-    setOpen(false);
-  };
-
-  function handleListKeyDown(event) {
-    if (event.key === "Tab") {
-      event.preventDefault();
-      setOpen(false);
-    } else if (event.key === "Escape") {
-      setOpen(false);
-    }
-  }
-
-  // return focus to the button when we transitioned from !open -> open
-  const prevOpen = React.useRef(open);
-  React.useEffect(() => {
-    if (prevOpen.current === true && open === false) {
-      anchorRef.current.focus();
-    }
-
-    prevOpen.current = open;
-  }, [open]);
 
   return (
-    <Box>
-      <Paper
+    <ClickAwayListener onClickAway={handleClickAway}>
+      <Box
         sx={{
+          // position: "fixed", // Keep the sidebar in a fixed position
+          // top: 0,
+          // left: 0,
+          zIndex: 1200, // Ensure it is above other content
           height: "100vh", // Ensure it takes the full height of its parent
           display: "flex",
           flexDirection: "column", // Align items vertically
-          bgcolor: "lightblue",
+
+          width: "200px", // Adjust width as needed
+          transform: open ? "translateX(0)" : "translateX(-300px)", // Adjust width here as well
+          transition: "transform 0.3s ease-in-out", // Smooth slide-in effect
         }}
       >
-        <MenuList>
-          <MenuItem>Pantry List</MenuItem>
-          <MenuItem>Add Catagory</MenuItem>
-          <MenuItem>Logout</MenuItem>
-        </MenuList>
-      </Paper>
-      {/* <div>
-        <Button
-          ref={anchorRef}
-          id="composition-button"
-          aria-controls={open ? "composition-menu" : undefined}
-          aria-expanded={open ? "true" : undefined}
-          aria-haspopup="true"
-          onClick={handleToggle}
-        >
-          Dashboard
-        </Button>
-        <Popper
-          open={open}
-          anchorEl={anchorRef.current}
-          role={undefined}
-          placement="bottom-start"
-          transition
-          disablePortal
-        >
-          {({ TransitionProps, placement }) => (
-            <Grow
-              {...TransitionProps}
-              style={{
-                transformOrigin:
-                  placement === "bottom-start" ? "left top" : "left bottom",
-              }}
-            >
-              <Paper>
-                <ClickAwayListener onClickAway={handleClose}>
-                  <MenuList
-                    autoFocusItem={open}
-                    id="composition-menu"
-                    aria-labelledby="composition-button"
-                    onKeyDown={handleListKeyDown}
-                  >
-                    <MenuItem onClick={handleClose}>Profile</MenuItem>
-                    <MenuItem onClick={handleClose}>My account</MenuItem>
-                    <MenuItem onClick={handleClose}>Logout</MenuItem>
-                  </MenuList>
-                </ClickAwayListener>
-              </Paper>
-            </Grow>
-          )}
-        </Popper>
-      </div> */}
-    </Box>
+        <Paper sx={{ width: "100%", height: "100%", bgcolor: "#1976d2" }}>
+          <MenuItem onClick={() => onMenuItemClick("Pantry List")}>
+            <ListItemIcon>
+              <ListIcon fontSize="small" />
+            </ListItemIcon>
+            <Typography variant="inherit">Pantry List</Typography>
+          </MenuItem>
+          <MenuItem onClick={() => onMenuItemClick("Add Category")}>
+            <ListItemIcon>
+              <AddCircleIcon fontSize="small" />
+            </ListItemIcon>
+            <Typography variant="inherit">Add Category</Typography>
+          </MenuItem>
+          <MenuItem>
+            <ListItemIcon>
+              <ExitToAppIcon fontSize="small" />
+            </ListItemIcon>
+            <Typography variant="inherit">Logout</Typography>
+          </MenuItem>
+        </Paper>
+      </Box>
+    </ClickAwayListener>
   );
 }

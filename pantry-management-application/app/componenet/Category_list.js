@@ -1,19 +1,13 @@
-"use client";
 import * as React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-const columns = (deleteItem) => [
+const columns = (deleteCategory) => [
   // { field: "id", headerName: "ID", width: 70 },
-  { field: "Item", headerName: "Item", width: 130 },
   { field: "Category", headerName: "Category", width: 130 },
-  {
-    field: "Quantity",
-    headerName: "Quantity",
-    type: "number",
-    width: 90,
-  },
+  { field: "Description", headerName: "Description", width: 130 },
+
   {
     field: "actions",
     headerName: "Actions",
@@ -23,7 +17,7 @@ const columns = (deleteItem) => [
         aria-label="delete"
         size="small"
         background-color="red"
-        onClick={() => deleteItem(params.row.id)}
+        onClick={() => deleteCategory(params.row.id)}
       >
         <DeleteIcon fontSize="small" />
       </IconButton>
@@ -31,14 +25,15 @@ const columns = (deleteItem) => [
   },
 ];
 
-export default function DataTable({ rows = [], deleteItem }) {
+export default function CategoryDataTable({ rows = [], deleteCategory }) {
+  //rows = [], deleteItem
   return (
     <>
       <div style={{ height: 400, width: "100%" }}>
         <DataGrid
           sx={{ py: 2 }}
           rows={rows || []}
-          columns={columns(deleteItem)}
+          columns={columns(deleteCategory)}
           initialState={{
             pagination: {
               paginationModel: { page: 0, pageSize: 5 },
