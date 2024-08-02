@@ -18,10 +18,9 @@ import MenuListComposition from "./componenet/Menubar";
 import DataTable from "./componenet/Pantry_list";
 import AddItem from "./componenet/Add_Item";
 import AddCategory from "./componenet/Add_Category";
-import { Container, Box } from "@mui/material";
+import { Container, Box, Button, Dialog, DialogContent } from "@mui/material";
 import CategoryDataTable from "./componenet/Category_list";
-import { Category } from "@mui/icons-material";
-import { tree } from "next/dist/build/templates/app-page";
+import CameraComponent from "./componenet/Camera_Component";
 
 export default function Home() {
   // State for items
@@ -42,7 +41,7 @@ export default function Home() {
   const [visibleSection, setVisibleSection] = useState("Pantry List");
   const [errorMessage, setErrorMessage] = useState("");
   const buttonRef = useRef(null);
-
+  const [showCamera, setShowCamera] = useState(false);
   // Toggle menu open/close
   const handleMenuToggle = () => {
     setMenuOpen((prev) => !prev);
@@ -53,6 +52,11 @@ export default function Home() {
     setMenuOpen(false);
   };
 
+  const handleCapture = (photo) => {
+    console.log("Captured photo:", photo);
+    // You can process the photo or store it as needed
+    // setShowCamera(false);
+  };
   // Fetch all items
   const fetchItems = async () => {
     try {
@@ -144,7 +148,6 @@ export default function Home() {
       // Fetch all existing categories
       const categoriesCollection = collection(firestore, "Category List");
       const querySnapshot = await getDocs(categoriesCollection);
-      console.log("added4", querySnapshot);
       // Check if the normalized category already exists
       const categoryExists = querySnapshot.docs.some((doc) => {
         const existingCategoryName = doc.id.toLowerCase();
@@ -158,13 +161,22 @@ export default function Home() {
         await setDoc(doc(firestore, "Category List", newCategory.category), {
           description: newCategory.description,
         });
-        console.log("added2");
         setErrorMessage(""); // Clear error message on successful addition
         fetchCategories();
         setNewCategory({ category: "", description: "" });
       }
     } catch (error) {
       console.error("Error adding category: ", error);
+    }
+  };
+
+  const deleteCategory = async (id) => {
+    try {
+      const docRef = doc(firestore, "Category List", id);
+      await deleteDoc(docRef);
+      fetchCategories();
+    } catch (error) {
+      console.error("Error deleting  category: ", error);
     }
   };
 
@@ -195,14 +207,37 @@ export default function Home() {
             onMenuItemClick={(section) => setVisibleSection(section)}
           />
         </Box>
-        <Box display="flex" sx={{ flexDirection: "column" }}>
+        <Box display="flex" sx={{ flexDirection: "column", width: "70%" }}>
           {visibleSection === "Pantry List" && (
             <>
-              <AddItem
-                newItem={newItem}
-                setNewItem={setNewItem}
-                addItem={addItem}
-              />
+              <Box display="flex" alignItems="center">
+                <AddItem
+                  newItem={newItem}
+                  setNewItem={setNewItem}
+                  addItem={addItem}
+                  categories={categories}
+                />
+                <Button
+                  onClick={() => setShowCamera(true)}
+                  sx={{ ml: 2, py: 2, px: 1 }}
+                  variant="contained"
+                >
+                  Open Camera
+                </Button>
+              </Box>
+              <Dialog
+                open={showCamera}
+                onClose={() => setShowCamera(false)}
+                fullWidth
+                maxWidth="sm"
+              >
+                <DialogContent>
+                  <CameraComponent
+                    onCapture={handleCapture}
+                    onClose={() => setShowCamera(false)}
+                  />
+                </DialogContent>
+              </Dialog>
               <DataTable rows={items} deleteItem={deleteItem} />
             </>
           )}
@@ -213,7 +248,10 @@ export default function Home() {
                 setNewCategory={setNewCategory}
                 addCategory={addCategory}
               />
-              <CategoryDataTable rows={categories} />
+              <CategoryDataTable
+                rows={categories}
+                deleteCategory={deleteCategory}
+              />
             </>
           )}
         </Box>
