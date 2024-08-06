@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { auth, firestore } from "../../Firebase";
 import {
   collection,
@@ -22,14 +21,15 @@ import { Container, Box, Button, Dialog, DialogContent } from "@mui/material";
 import CategoryDataTable from "./Category_list";
 import CameraComponent from "./Camera_Component";
 
-
-
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [newItem, setNewItem] = useState({ name: "", category: "" });
-  const [newCategory, setNewCategory] = useState({ name: "", description: "" });
+  const [newCategory, setNewCategory] = useState({
+    category: "",
+    description: "",
+  });
   const [menuOpen, setMenuOpen] = useState(true);
   const [visibleSection, setVisibleSection] = useState("Pantry List");
   const [errorMessage, setErrorMessage] = useState("");
@@ -130,9 +130,18 @@ export default function Home() {
 
   const addCategory = async () => {
     try {
-      const normalizedNewCategory = newCategory.name.toLowerCase();
+      // Trim whitespace and check if the category name is empty
+      const trimmedCategoryName = newCategory.category.trim();
+      if (!trimmedCategoryName) {
+        setErrorMessage("Category name cannot be empty");
+        return;
+      }
+
+      const normalizedNewCategory = trimmedCategoryName.toLowerCase();
       const categoriesCollection = collection(firestore, "Category List");
       const querySnapshot = await getDocs(categoriesCollection);
+
+      // Check if the category already exists
       const categoryExists = querySnapshot.docs.some((doc) => {
         const existingCategoryName = doc.id.toLowerCase();
         return existingCategoryName === normalizedNewCategory;
@@ -141,15 +150,18 @@ export default function Home() {
       if (categoryExists) {
         setErrorMessage("This category already exists");
       } else {
-        await setDoc(doc(firestore, "Category List", newCategory.name), {
+        // Create a document reference with the trimmed category name
+        const newCategoryRef = doc(categoriesCollection, trimmedCategoryName);
+        await setDoc(newCategoryRef, {
           description: newCategory.description,
         });
-        setErrorMessage(""); // Clear error message on successful addition
-        fetchCategories();
-        setNewCategory({ name: "", description: "" });
+        setErrorMessage("");
+        fetchCategories(); // Refresh the categories list
+        setNewCategory({ category: "", description: "" }); // Reset the input fields
       }
     } catch (error) {
       console.error("Error adding category: ", error);
+      setErrorMessage("Error adding category: " + error.message);
     }
   };
 

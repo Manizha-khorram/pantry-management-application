@@ -1,6 +1,5 @@
 "use client";
 
-// components/AddItem.js
 import React from "react";
 import { TextField, Button, Stack } from "@mui/material";
 
@@ -24,7 +23,7 @@ const AddCategory = ({ newCategory, setNewCategory, addCategory }) => {
         }
       />
       <Button variant="contained" onClick={addCategory}>
-        Add Item
+        Add
       </Button>
     </Stack>
   );

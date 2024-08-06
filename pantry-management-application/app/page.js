@@ -16,28 +16,42 @@ import Typography from "@mui/material/Typography";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
 import { useLogin } from "./hooks/Login";
+import { useSignup } from "./hooks/SignUp";
 
-// Create a default theme
 const defaultTheme = createTheme();
 
 export default function LandingPage() {
   const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [isSignIn, setIsSignIn] = React.useState(true); // State to toggle between sign-in and sign-up
-  const { login, error, loading, user } = useLogin(); // Use the login hook
+  const [isSignIn, setIsSignIn] = React.useState(true);
+  const {
+    login,
+    error: loginError,
+    loading: loginLoading,
+    user: loginUser,
+  } = useLogin();
+  const {
+    signup,
+    error: signupError,
+    loading: signupLoading,
+    user: signupUser,
+  } = useSignup();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    await login(email, password);
+    if (isSignIn) {
+      await login(email, password);
+    } else {
+      await signup(email, password);
+    }
   };
 
   React.useEffect(() => {
-    if (user) {
-      // Redirect to a different page if the user is logged in
-      router.push("/home"); // Adjust the route as necessary
+    if (loginUser || signupUser) {
+      router.push("/home");
     }
-  }, [user, router]);
+  }, [loginUser, signupUser, router]);
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -113,9 +127,13 @@ export default function LandingPage() {
                 fullWidth
                 variant="contained"
                 sx={{ mt: 3, mb: 2 }}
-                disabled={loading}
+                disabled={loginLoading || signupLoading}
               >
-                {loading ? "Logging in..." : isSignIn ? "Sign In" : "Sign Up"}
+                {loginLoading || signupLoading
+                  ? "Processing..."
+                  : isSignIn
+                  ? "Sign In"
+                  : "Sign Up"}
               </Button>
               <Grid container>
                 <Grid item xs>
@@ -135,7 +153,8 @@ export default function LandingPage() {
                   </Link>
                 </Grid>
               </Grid>
-              {error && <p style={{ color: "red" }}>{error}</p>}
+              {loginError && <p style={{ color: "red" }}>{loginError}</p>}
+              {signupError && <p style={{ color: "red" }}>{signupError}</p>}
               <Copyright sx={{ mt: 5 }} />
             </Box>
           </Box>
@@ -145,7 +164,6 @@ export default function LandingPage() {
   );
 }
 
-// Copyright Component
 function Copyright(props) {
   return (
     <Typography
